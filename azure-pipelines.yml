@@ -1,18 +1,20 @@
 trigger:
-- main  # o la rama principal de tu repo
+- main  # Cambia si tu rama principal tiene otro nombre
 
 pool:
-  vmImage: 'windows-latest'
+  name: Default
+  demands:
+    - agent.name -equals JavierPC
 
 variables:
   buildConfiguration: 'Release'
 
 steps:
-# Paso 1: Instalar el SDK de .NET
+# Paso 1: Usar el SDK de .NET 6
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
-    version: '6.0.x'  # o la versión que uses en tu proyecto
+    version: '6.0.x'
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 # Paso 2: Restaurar dependencias
@@ -23,7 +25,7 @@ steps:
 - script: dotnet build --configuration $(buildConfiguration) --no-restore
   displayName: 'Compilar el proyecto'
 
-# Paso 4: Ejecutar pruebas (opcional, si tienes tests)
+# Paso 4: Ejecutar pruebas (opcional)
 - script: dotnet test --configuration $(buildConfiguration) --no-build --verbosity normal
   displayName: 'Ejecutar pruebas'
 
