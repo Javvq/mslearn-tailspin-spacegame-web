@@ -1,17 +1,35 @@
-# ASP.NET Core
-# Compile y pruebe proyectos de ASP.NET Core con destino .NET Core.
-# Agregue pasos que ejecuten pruebas, creen un paquete NuGet, implementen y más:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
-
 trigger:
-- main
+- main  # o la rama principal de tu repo
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'windows-latest'
 
 variables:
   buildConfiguration: 'Release'
 
 steps:
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
+# Paso 1: Instalar el SDK de .NET
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '6.0.x'  # o la versión que uses en tu proyecto
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+# Paso 2: Restaurar dependencias
+- script: dotnet restore
+  displayName: 'Restaurar paquetes NuGet'
+
+# Paso 3: Compilar el proyecto
+- script: dotnet build --configuration $(buildConfiguration) --no-restore
+  displayName: 'Compilar el proyecto'
+
+# Paso 4: Ejecutar pruebas (opcional, si tienes tests)
+- script: dotnet test --configuration $(buildConfiguration) --no-build --verbosity normal
+  displayName: 'Ejecutar pruebas'
+
+# Paso 5: Publicar artefactos (opcional)
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
